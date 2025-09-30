@@ -1,0 +1,66 @@
+<div class="container">
+  <div class="header">
+    <h1>{{ isEditMode() ? 'Editar Empresa' : 'Nueva Empresa' }}</h1>
+    <a routerLink="/empresas" class="btn btn-secondary">← Volver</a>
+  </div>
+
+  @if (error()) {
+    <div class="error-message">{{ error() }}</div>
+  }
+
+  <div class="form-container">
+    <form [formGroup]="empresaForm" (ngSubmit)="onSubmit()">
+      <div class="form-group">
+        <label for="nombre">Nombre de la Empresa *</label>
+        <input
+          type="text"
+          id="nombre"
+          formControlName="nombre"
+          [class.error]="hasError('nombre')"
+          placeholder="Ingrese el nombre"
+        />
+        @if (hasError('nombre')) {
+          <span class="error-text">{{ getErrorMessage('nombre') }}</span>
+        }
+      </div>
+
+      <div class="form-group">
+        <label for="nit">NIT *</label>
+        <input
+          type="text"
+          id="nit"
+          formControlName="nit"
+          [class.error]="hasError('nit')"
+          placeholder="Ingrese el NIT"
+          maxlength="30"
+        />
+        @if (hasError('nit')) {
+          <span class="error-text">{{ getErrorMessage('nit') }}</span>
+        }
+      </div>
+
+      <div class="form-group">
+        <label for="correo">Correo Electrónico *</label>
+        <input
+          type="email"
+          id="correo"
+          formControlName="correo"
+          [class.error]="hasError('correo')"
+          placeholder="ejemplo@correo.com"
+        />
+        @if (hasError('correo')) {
+          <span class="error-text">{{ getErrorMessage('correo') }}</span>
+        }
+      </div>
+
+      <div class="form-actions">
+        <button type="button" routerLink="/empresas" class="btn btn-secondary">
+          Cancelar
+        </button>
+        <button type="submit" class="btn btn-primary" [disabled]="loading()">
+          {{ loading() ? 'Guardando...' : (isEditMode() ? 'Actualizar' : 'Crear') }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

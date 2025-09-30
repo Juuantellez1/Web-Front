@@ -1,0 +1,59 @@
+<div class="container">
+  <div class="header">
+    <h1>Gestión de Empresas</h1>
+    <a routerLink="/empresas/nuevo" class="btn btn-primary">
+      <span class="icon">+</span> Nueva Empresa
+    </a>
+  </div>
+
+  @if (loading()) {
+    <div class="loading">Cargando empresas...</div>
+  }
+
+  @if (error()) {
+    <div class="error">{{ error() }}</div>
+  }
+
+  @if (!loading() && empresas().length === 0) {
+    <div class="empty-state">
+      <p>No hay empresas registradas</p>
+      <a routerLink="/empresas/nuevo" class="btn btn-primary">Crear primera empresa</a>
+    </div>
+  }
+
+  @if (empresas().length > 0) {
+    <div class="table-container">
+      <table>
+        <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nombre</th>
+          <th>NIT</th>
+          <th>Correo</th>
+          <th>Fecha Registro</th>
+          <th>Acciones</th>
+        </tr>
+        </thead>
+        <tbody>
+          @for (empresa of empresas(); track empresa.id) {
+            <tr>
+              <td>{{ empresa.id }}</td>
+              <td>{{ empresa.nombre }}</td>
+              <td>{{ empresa.nit }}</td>
+              <td>{{ empresa.correo }}</td>
+              <td>{{ empresa.fecha_registro | date:'dd/MM/yyyy HH:mm' }}</td>
+              <td class="actions">
+                <a [routerLink]="['/empresas/editar', empresa.id]" class="btn btn-edit">
+                  Editar
+                </a>
+                <button (click)="eliminar(empresa.id)" class="btn btn-delete">
+                  Eliminar
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
