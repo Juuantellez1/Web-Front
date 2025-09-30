@@ -1,0 +1,71 @@
+<div class="container">
+  <div class="header">
+    <h1>Gestión de Usuarios</h1>
+    <a routerLink="/usuarios/nuevo" class="btn btn-primary">
+      <span class="icon">+</span> Nuevo Usuario
+    </a>
+  </div>
+
+  @if (loading()) {
+    <div class="loading">Cargando usuarios...</div>
+  }
+
+  @if (error()) {
+    <div class="error">{{ error() }}</div>
+  }
+
+  @if (!loading() && usuarios().length === 0) {
+    <div class="empty-state">
+      <p>No hay usuarios registrados</p>
+      <a routerLink="/usuarios/nuevo" class="btn btn-primary">Crear primer usuario</a>
+    </div>
+  }
+
+  @if (usuarios().length > 0) {
+    <div class="table-container">
+      <table>
+        <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nombre</th>
+          <th>Apellido</th>
+          <th>Correo</th>
+          <th>Estado</th>
+          <th>Último Login</th>
+          <th>Fecha Registro</th>
+          <th>Acciones</th>
+        </tr>
+        </thead>
+        <tbody>
+          @for (usuario of usuarios(); track usuario.id) {
+            <tr>
+              <td>{{ usuario.id }}</td>
+              <td>{{ usuario.nombre }}</td>
+              <td>{{ usuario.apellido }}</td>
+              <td>{{ usuario.correo }}</td>
+              <td>
+                <button
+                  (click)="toggleActivo(usuario)"
+                  [class.badge-active]="usuario.activo"
+                  [class.badge-inactive]="!usuario.activo"
+                  class="badge">
+                  {{ usuario.activo ? 'Activo' : 'Inactivo' }}
+                </button>
+              </td>
+              <td>{{ usuario.ultimo_login ? (usuario.ultimo_login | date:'dd/MM/yyyy HH:mm') : 'Nunca' }}</td>
+              <td>{{ usuario.fecha_registro | date:'dd/MM/yyyy HH:mm' }}</td>
+              <td class="actions">
+                <a [routerLink]="['/usuarios/editar', usuario.id]" class="btn btn-edit">
+                  Editar
+                </a>
+                <button (click)="eliminar(usuario.id)" class="btn btn-delete">
+                  Eliminar
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
