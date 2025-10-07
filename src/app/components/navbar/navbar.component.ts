@@ -11,8 +11,7 @@ import { AuthService } from '../../services/auth.service';
     <nav class="navbar">
       <div class="nav-container">
         <div class="nav-brand">
-          <span class="brand-icon">🏢</span>
-          <span class="brand-text">Mi Aplicación</span>
+          <span class="brand-text">Proyecto</span>
         </div>
 
         @if (authService.isAuthenticated()) {
