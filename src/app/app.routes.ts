@@ -1,3 +1,4 @@
+
 import { Routes } from '@angular/router';
 import { EmpresaListComponent } from './pages/empresas/empresa-list/empresa-list.component';
 import { EmpresaFormComponent } from './pages/empresas/empresa-form/empresa-form.component';
@@ -5,6 +6,7 @@ import { UsuarioListComponent } from './pages/usuarios/usuario-list/usuario-list
 import { UsuarioFormComponent } from './pages/usuarios/usuario-form/usuario-form.component';
 import { LoginComponent } from './pages/login/login.component';
 import { authGuard, loginGuard } from './guards/auth.guard';
+import {RegistroComponent} from './pages/registro/registro.component';
 
 export const routes: Routes = [
   {
@@ -16,6 +18,10 @@ export const routes: Routes = [
     path: 'login',
     component: LoginComponent,
     canActivate: [loginGuard]
+  },
+  {
+    path: 'registro',
+    component: RegistroComponent
   },
   {
     path: 'empresas',

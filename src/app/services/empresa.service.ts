@@ -2,16 +2,21 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Empresa } from '../models/empresa.model';
+import { CrearEmpresaRequest, CrearEmpresaResponse } from '../models/registro.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class EmpresaService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:8080/api/empresas'; // Ajusta el puerto según tu backend
+  private apiUrl = 'http://localhost:8080/api/empresas';
 
   listar(): Observable<Empresa[]> {
     return this.http.get<Empresa[]>(this.apiUrl);
+  }
+
+  crearConAdmin(request: CrearEmpresaRequest): Observable<CrearEmpresaResponse> {
+    return this.http.post<CrearEmpresaResponse>(this.apiUrl, request);
   }
 
   obtenerPorId(id: number): Observable<Empresa> {

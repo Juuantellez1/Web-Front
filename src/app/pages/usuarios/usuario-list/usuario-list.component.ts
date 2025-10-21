@@ -1,3 +1,4 @@
+
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
@@ -28,13 +29,24 @@ export class UsuarioListComponent implements OnInit {
 
     this.usuarioService.listar().subscribe({
       next: (data) => {
+        console.log('Usuarios recibidos:', data); // Para debug
         this.usuarios.set(data);
         this.loading.set(false);
       },
       error: (err) => {
-        this.error.set('Error al cargar los usuarios');
+        console.error('Error completo:', err);
+
+        if (err.status === 500) {
+          this.error.set('Error del servidor al cargar usuarios. Por favor, contacta al administrador.');
+        } else if (err.status === 403) {
+          this.error.set('No tienes permisos para ver los usuarios.');
+        } else if (err.status === 401) {
+          this.error.set('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
+        } else {
+          this.error.set('Error al cargar los usuarios. Por favor, intenta nuevamente.');
+        }
+
         this.loading.set(false);
-        console.error('Error:', err);
       }
     });
   }
@@ -68,5 +80,14 @@ export class UsuarioListComponent implements OnInit {
         console.error('Error:', err);
       }
     });
+  }
+
+  getRolLabel(rol: string): string {
+    const labels: Record<string, string> = {
+      'ADMIN': 'Administrador',
+      'EDITOR': 'Editor',
+      'LECTOR': 'Lector'
+    };
+    return labels[rol] || rol;
   }
 }
