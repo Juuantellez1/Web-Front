@@ -1,3 +1,4 @@
+
 <div class="container">
   <div class="header">
     <h1>{{ isEditMode() ? 'Editar Usuario' : 'Nuevo Usuario' }}</h1>
@@ -10,34 +11,32 @@
 
   <div class="form-container">
     <form [formGroup]="usuarioForm" (ngSubmit)="onSubmit()">
-      <div class="form-row">
-        <div class="form-group">
-          <label for="nombre">Nombre *</label>
-          <input
-            type="text"
-            id="nombre"
-            formControlName="nombre"
-            [class.error]="hasError('nombre')"
-            placeholder="Ingrese el nombre"
-          />
-          @if (hasError('nombre')) {
-            <span class="error-text">{{ getErrorMessage('nombre') }}</span>
-          }
-        </div>
+      <div class="form-group">
+        <label for="nombre">Nombre *</label>
+        <input
+          type="text"
+          id="nombre"
+          formControlName="nombre"
+          [class.error]="hasError('nombre')"
+          placeholder="Ingrese el nombre"
+        />
+        @if (hasError('nombre')) {
+          <span class="error-text">{{ getErrorMessage('nombre') }}</span>
+        }
+      </div>
 
-        <div class="form-group">
-          <label for="apellido">Apellido *</label>
-          <input
-            type="text"
-            id="apellido"
-            formControlName="apellido"
-            [class.error]="hasError('apellido')"
-            placeholder="Ingrese el apellido"
-          />
-          @if (hasError('apellido')) {
-            <span class="error-text">{{ getErrorMessage('apellido') }}</span>
-          }
-        </div>
+      <div class="form-group">
+        <label for="apellido">Apellido *</label>
+        <input
+          type="text"
+          id="apellido"
+          formControlName="apellido"
+          [class.error]="hasError('apellido')"
+          placeholder="Ingrese el apellido"
+        />
+        @if (hasError('apellido')) {
+          <span class="error-text">{{ getErrorMessage('apellido') }}</span>
+        }
       </div>
 
       <div class="form-group">
@@ -47,7 +46,7 @@
           id="correo"
           formControlName="correo"
           [class.error]="hasError('correo')"
-          placeholder="ejemplo@correo.com"
+          placeholder="usuario@empresa.com"
         />
         @if (hasError('correo')) {
           <span class="error-text">{{ getErrorMessage('correo') }}</span>
@@ -56,29 +55,40 @@
 
       <div class="form-group">
         <label for="password">
-          Contraseña {{ isEditMode() ? '(dejar vacío si no desea cambiarla)' : '*' }}
+          Contraseña {{ isEditMode() ? '(opcional - dejar vacío para no cambiar)' : '*' }}
         </label>
-        <div class="password-container">
-          <input
-            [type]="showPassword() ? 'text' : 'password'"
-            id="password"
-            formControlName="password"
-            [class.error]="hasError('password')"
-            placeholder="Ingrese la contraseña"
-          />
-          <button
-            type="button"
-            class="toggle-password"
-            (click)="togglePasswordVisibility()">
-            {{ showPassword() ? '👁️' : '👁️‍🗨️' }}
-          </button>
-        </div>
+        <input
+          type="password"
+          id="password"
+          formControlName="password"
+          [class.error]="hasError('password')"
+          [placeholder]="isEditMode() ? 'Dejar vacío para mantener la actual' : 'Mínimo 6 caracteres'"
+        />
         @if (hasError('password')) {
           <span class="error-text">{{ getErrorMessage('password') }}</span>
         }
+        @if (isEditMode()) {
+          <span class="help-text">Solo ingrese una contraseña si desea cambiarla</span>
+        }
       </div>
 
-      <div class="form-group checkbox-group">
+      <div class="form-group">
+        <label for="rolUsuario">Rol del Usuario *</label>
+        <select
+          id="rolUsuario"
+          formControlName="rolUsuario"
+          [class.error]="hasError('rolUsuario')"
+        >
+          @for (rol of roles; track rol) {
+            <option [value]="rol">{{ rol }}</option>
+          }
+        </select>
+        @if (hasError('rolUsuario')) {
+          <span class="error-text">{{ getErrorMessage('rolUsuario') }}</span>
+        }
+      </div>
+
+      <div class="form-group">
         <label class="checkbox-label">
           <input
             type="checkbox"
@@ -86,15 +96,36 @@
           />
           <span>Usuario activo</span>
         </label>
-        <small>Los usuarios inactivos no podrán acceder al sistema</small>
+        <span class="help-text">Los usuarios inactivos no pueden iniciar sesión</span>
+      </div>
+
+      <div class="info-box">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="16" x2="12" y2="12"/>
+          <line x1="12" y1="8" x2="12.01" y2="8"/>
+        </svg>
+        <div>
+          <strong>Roles disponibles:</strong>
+          <ul>
+            <li><strong>ADMIN:</strong> Acceso completo al sistema</li>
+            <li><strong>EDITOR:</strong> Puede crear y editar procesos</li>
+            <li><strong>LECTOR:</strong> Solo puede visualizar información</li>
+          </ul>
+        </div>
       </div>
 
       <div class="form-actions">
         <button type="button" routerLink="/usuarios" class="btn btn-secondary">
           Cancelar
         </button>
-        <button type="submit" class="btn btn-primary" [disabled]="loading()">
-          {{ loading() ? 'Guardando...' : (isEditMode() ? 'Actualizar' : 'Crear') }}
+        <button type="submit" class="btn btn-primary" [disabled]="loading() || usuarioForm.invalid">
+          @if (loading()) {
+            <span class="spinner-small"></span>
+            <span>Guardando...</span>
+          } @else {
+            <span>{{ isEditMode() ? 'Actualizar Usuario' : 'Crear Usuario' }}</span>
+          }
         </button>
       </div>
     </form>

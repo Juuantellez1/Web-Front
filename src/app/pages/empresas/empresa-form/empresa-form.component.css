@@ -116,3 +116,25 @@ input.error {
   padding-top: 1.5rem;
   border-top: 1px solid #e5e7eb;
 }
+
+.section {
+  margin-bottom: 2rem;
+  padding-bottom: 2rem;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.section:last-of-type {
+  border-bottom: none;
+}
+
+.section-title {
+  font-size: 1.25rem;
+  color: #2d3748;
+  margin: 0 0 0.5rem 0;
+}
+
+.section-description {
+  color: #718096;
+  font-size: 0.875rem;
+  margin: 0 0 1.5rem 0;
+}
