@@ -1,0 +1,420 @@
+
+<div class="container">
+  @if (loading()) {
+    <div class="loading">
+      <div class="spinner"></div>
+      <p>Cargando editor...</p>
+    </div>
+  } @else if (error()) {
+    <div class="error">
+      <p>{{ error() }}</p>
+      <a routerLink="/procesos" class="btn btn-primary">Volver a Procesos</a>
+    </div>
+  } @else if (proceso()) {
+    <!-- Header -->
+    <div class="header">
+      <div class="header-info">
+        <h1>Editor: {{ proceso()!.nombre }}</h1>
+        <p class="subtitle">Gestiona las actividades, gateways y arcos del proceso</p>
+      </div>
+      <div class="header-actions">
+        <a [routerLink]="['/procesos', procesoId]" class="btn btn-secondary">
+          ← Ver Detalle
+        </a>
+        <a routerLink="/procesos" class="btn btn-secondary">
+          Cerrar Editor
+        </a>
+      </div>
+    </div>
+
+    <!-- Navegación de Pestañas -->
+    <div class="tabs-nav">
+      <button
+        class="tab-btn"
+        [class.active]="vistaActiva() === 'actividades'"
+        (click)="cambiarVista('actividades')"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+        </svg>
+        Actividades ({{ actividades().length }})
+      </button>
+      <button
+        class="tab-btn"
+        [class.active]="vistaActiva() === 'gateways'"
+        (click)="cambiarVista('gateways')"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+        </svg>
+        Gateways ({{ gateways().length }})
+      </button>
+      <button
+        class="tab-btn"
+        [class.active]="vistaActiva() === 'arcos'"
+        (click)="cambiarVista('arcos')"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="5" y1="12" x2="19" y2="12"/>
+          <polyline points="12 5 19 12 12 19"/>
+        </svg>
+        Arcos ({{ arcos().length }})
+      </button>
+    </div>
+
+    <div class="content-layout">
+      <!-- Panel Lateral - Lista de Elementos -->
+      <div class="sidebar">
+        <!-- ACTIVIDADES -->
+        @if (vistaActiva() === 'actividades') {
+          <div class="sidebar-header">
+            <h2>Actividades</h2>
+            <button class="btn btn-primary btn-sm" (click)="nuevaActividad()">
+              + Nueva
+            </button>
+          </div>
+          <div class="elements-list">
+            @if (actividades().length === 0) {
+              <div class="empty-list">
+                <p>No hay actividades</p>
+              </div>
+            } @else {
+              @for (act of actividades(); track act.id) {
+                <div class="element-item" [class.inactive]="!act.activo">
+                  <div class="element-content">
+                    <strong>{{ act.nombre }}</strong>
+                    <span class="element-type">{{ act.tipo }}</span>
+                    @if (act.rolResponsableNombre) {
+                      <small>{{ act.rolResponsableNombre }}</small>
+                    }
+                  </div>
+                  <div class="element-actions">
+                    <button class="btn-icon" (click)="editarActividad(act)" title="Editar">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                      </svg>
+                    </button>
+                    <button class="btn-icon btn-delete" (click)="eliminarActividad(act)" title="Eliminar">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="3 6 5 6 21 6"/>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              }
+            }
+          </div>
+        }
+
+        <!-- GATEWAYS -->
+        @if (vistaActiva() === 'gateways') {
+          <div class="sidebar-header">
+            <h2>Gateways</h2>
+            <button class="btn btn-primary btn-sm" (click)="nuevoGateway()">
+              + Nuevo
+            </button>
+          </div>
+          <div class="elements-list">
+            @if (gateways().length === 0) {
+              <div class="empty-list">
+                <p>No hay gateways</p>
+              </div>
+            } @else {
+              @for (gw of gateways(); track gw.id) {
+                <div class="element-item" [class.inactive]="!gw.activo">
+                  <div class="element-content">
+                    <strong>{{ gw.nombre }}</strong>
+                    <span class="element-type">{{ gw.tipo }}</span>
+                    <small>↓{{ gw.cantidadArcosEntrantes || 0 }} | ↑{{ gw.cantidadArcosSalientes || 0 }}</small>
+                  </div>
+                  <div class="element-actions">
+                    <button class="btn-icon" (click)="editarGateway(gw)" title="Editar">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                      </svg>
+                    </button>
+                    <button class="btn-icon btn-delete" (click)="eliminarGateway(gw)" title="Eliminar">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="3 6 5 6 21 6"/>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              }
+            }
+          </div>
+        }
+
+        <!-- ARCOS -->
+        @if (vistaActiva() === 'arcos') {
+          <div class="sidebar-header">
+            <h2>Arcos</h2>
+            <button class="btn btn-primary btn-sm" (click)="nuevoArco()">
+              + Nuevo
+            </button>
+          </div>
+          <div class="elements-list">
+            @if (arcos().length === 0) {
+              <div class="empty-list">
+                <p>No hay arcos</p>
+              </div>
+            } @else {
+              @for (arco of arcos(); track arco.id) {
+                <div class="element-item arco-item" [class.inactive]="!arco.activo">
+                  <div class="arco-flow-mini">
+                    <div class="arco-node-mini">
+                      <small>{{ arco.tipoOrigen }}</small>
+                      <span>{{ arco.origenNombre || 'ID: ' + arco.origenId }}</span>
+                    </div>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <line x1="5" y1="12" x2="19" y2="12"/>
+                      <polyline points="12 5 19 12 12 19"/>
+                    </svg>
+                    <div class="arco-node-mini">
+                      <small>{{ arco.tipoDestino }}</small>
+                      <span>{{ arco.destinoNombre || 'ID: ' + arco.destinoId }}</span>
+                    </div>
+                  </div>
+                  @if (arco.condicion) {
+                    <small class="arco-condicion-mini">{{ arco.condicion }}</small>
+                  }
+                  <div class="element-actions">
+                    <button class="btn-icon" (click)="editarArco(arco)" title="Editar">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                      </svg>
+                    </button>
+                    <button class="btn-icon btn-delete" (click)="eliminarArco(arco)" title="Eliminar">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="3 6 5 6 21 6"/>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              }
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Panel Principal - Formulario -->
+      <div class="main-panel">
+        @if (modoEdicion()) {
+          <div class="form-panel">
+            <!-- FORMULARIO ACTIVIDAD -->
+            @if (modoEdicion() === 'actividad') {
+              <div class="form-header">
+                <h2>{{ elementoEditando() ? 'Editar Actividad' : 'Nueva Actividad' }}</h2>
+                <button class="btn-close" (click)="cancelarEdicion()">×</button>
+              </div>
+              <form [formGroup]="actividadForm" (ngSubmit)="guardarActividad()">
+                <div class="form-group">
+                  <label for="act-nombre">Nombre *</label>
+                  <input
+                    type="text"
+                    id="act-nombre"
+                    formControlName="nombre"
+                    [class.error]="hasError(actividadForm, 'nombre')"
+                    placeholder="Ej: Validar información del cliente"
+                  />
+                  @if (hasError(actividadForm, 'nombre')) {
+                    <span class="error-text">{{ getErrorMessage(actividadForm, 'nombre') }}</span>
+                  }
+                </div>
+
+                <div class="form-group">
+                  <label for="act-descripcion">Descripción</label>
+                  <textarea
+                    id="act-descripcion"
+                    formControlName="descripcion"
+                    rows="3"
+                    placeholder="Describe qué se hace en esta actividad"
+                  ></textarea>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="act-tipo">Tipo de Actividad *</label>
+                    <select id="act-tipo" formControlName="tipo">
+                      <option [value]="TipoActividad.MANUAL">Manual</option>
+                      <option [value]="TipoActividad.USUARIO">Usuario</option>
+                      <option [value]="TipoActividad.AUTOMATICA">Automática</option>
+                    </select>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="act-rol">Rol Responsable</label>
+                    <select id="act-rol" formControlName="rolResponsableId">
+                      <option [value]="null">Sin asignar</option>
+                      @for (rol of rolesDisponibles(); track rol.id) {
+                        <option [value]="rol.id">{{ rol.nombre }}</option>
+                      }
+                    </select>
+                  </div>
+                </div>
+
+                <div class="form-actions">
+                  <button type="button" class="btn btn-secondary" (click)="cancelarEdicion()">
+                    Cancelar
+                  </button>
+                  <button type="submit" class="btn btn-primary">
+                    {{ elementoEditando() ? 'Actualizar' : 'Crear' }}
+                  </button>
+                </div>
+              </form>
+            }
+
+            <!-- FORMULARIO GATEWAY -->
+            @if (modoEdicion() === 'gateway') {
+              <div class="form-header">
+                <h2>{{ elementoEditando() ? 'Editar Gateway' : 'Nuevo Gateway' }}</h2>
+                <button class="btn-close" (click)="cancelarEdicion()">×</button>
+              </div>
+              <form [formGroup]="gatewayForm" (ngSubmit)="guardarGateway()">
+                <div class="form-group">
+                  <label for="gw-nombre">Nombre *</label>
+                  <input
+                    type="text"
+                    id="gw-nombre"
+                    formControlName="nombre"
+                    [class.error]="hasError(gatewayForm, 'nombre')"
+                    placeholder="Ej: ¿Cliente aprobado?"
+                  />
+                  @if (hasError(gatewayForm, 'nombre')) {
+                    <span class="error-text">{{ getErrorMessage(gatewayForm, 'nombre') }}</span>
+                  }
+                </div>
+
+                <div class="form-group">
+                  <label for="gw-descripcion">Descripción</label>
+                  <textarea
+                    id="gw-descripcion"
+                    formControlName="descripcion"
+                    rows="3"
+                    placeholder="Describe la decisión o ramificación"
+                  ></textarea>
+                </div>
+
+                <div class="form-group">
+                  <label for="gw-tipo">Tipo de Gateway *</label>
+                  <select id="gw-tipo" formControlName="tipo">
+                    <option [value]="TipoGateway.EXCLUSIVO">Exclusivo (XOR) - Solo una ruta</option>
+                    <option [value]="TipoGateway.INCLUSIVO">Inclusivo (OR) - Una o más rutas</option>
+                    <option [value]="TipoGateway.PARALELO">Paralelo (AND) - Todas las rutas</option>
+                  </select>
+                </div>
+
+                <div class="form-actions">
+                  <button type="button" class="btn btn-secondary" (click)="cancelarEdicion()">
+                    Cancelar
+                  </button>
+                  <button type="submit" class="btn btn-primary">
+                    {{ elementoEditando() ? 'Actualizar' : 'Crear' }}
+                  </button>
+                </div>
+              </form>
+            }
+
+            <!-- FORMULARIO ARCO -->
+            @if (modoEdicion() === 'arco') {
+              <div class="form-header">
+                <h2>{{ elementoEditando() ? 'Editar Arco' : 'Nuevo Arco' }}</h2>
+                <button class="btn-close" (click)="cancelarEdicion()">×</button>
+              </div>
+              <form [formGroup]="arcoForm" (ngSubmit)="guardarArco()">
+                <div class="arco-visual">
+                  <div class="arco-section origen">
+                    <h3>Origen</h3>
+                    <div class="form-group">
+                      <label>Tipo de Nodo *</label>
+                      <select formControlName="tipoOrigen">
+                        <option [value]="TipoNodo.EVENTO_INICIO">Evento Inicio</option>
+                        <option [value]="TipoNodo.ACTIVIDAD">Actividad</option>
+                        <option [value]="TipoNodo.GATEWAY">Gateway</option>
+                      </select>
+                    </div>
+                    <div class="form-group">
+                      <label>Nodo Origen *</label>
+                      <select formControlName="origenId">
+                        <option [value]="null">Seleccionar...</option>
+                        @for (nodo of getNodosOrigen(); track nodo.id) {
+                          <option [value]="nodo.id">{{ nodo.nombre }}</option>
+                        }
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="arco-arrow-large">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <line x1="5" y1="12" x2="19" y2="12"/>
+                      <polyline points="12 5 19 12 12 19"/>
+                    </svg>
+                  </div>
+
+                  <div class="arco-section destino">
+                    <h3>Destino</h3>
+                    <div class="form-group">
+                      <label>Tipo de Nodo *</label>
+                      <select formControlName="tipoDestino">
+                        <option [value]="TipoNodo.ACTIVIDAD">Actividad</option>
+                        <option [value]="TipoNodo.GATEWAY">Gateway</option>
+                        <option [value]="TipoNodo.EVENTO_FIN">Evento Fin</option>
+                      </select>
+                    </div>
+                    <div class="form-group">
+                      <label>Nodo Destino *</label>
+                      <select formControlName="destinoId">
+                        <option [value]="null">Seleccionar...</option>
+                        @for (nodo of getNodosDestino(); track nodo.id) {
+                          <option [value]="nodo.id">{{ nodo.nombre }}</option>
+                        }
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label for="arco-condicion">Condición</label>
+                  <input
+                    type="text"
+                    id="arco-condicion"
+                    formControlName="condicion"
+                    placeholder="Ej: Monto > $1000, Cliente aprobado = Sí"
+                  />
+                  <span class="help-text">Opcional: Define la condición para que este flujo se ejecute</span>
+                </div>
+
+                <div class="form-actions">
+                  <button type="button" class="btn btn-secondary" (click)="cancelarEdicion()">
+                    Cancelar
+                  </button>
+                  <button type="submit" class="btn btn-primary">
+                    {{ elementoEditando() ? 'Actualizar' : 'Crear' }}
+                  </button>
+                </div>
+              </form>
+            }
+          </div>
+        } @else {
+          <div class="empty-main">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="16" y1="13" x2="8" y2="13"/>
+              <line x1="16" y1="17" x2="8" y2="17"/>
+              <polyline points="10 9 9 9 8 9"/>
+            </svg>
+            <h3>Selecciona o crea un elemento</h3>
+            <p>Usa los botones del panel izquierdo para agregar o editar elementos del proceso</p>
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>

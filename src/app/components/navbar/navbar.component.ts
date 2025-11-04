@@ -11,17 +11,28 @@ import { AuthService } from '../../services/auth.service';
     <nav class="navbar">
       <div class="nav-container">
         <div class="nav-brand">
-          <span class="brand-text">Proyecto</span>
+          <span class="brand-text">Sistema de Procesos</span>
         </div>
 
         @if (authService.isAuthenticated()) {
           <div class="nav-menu">
-            <a routerLink="/empresas" routerLinkActive="active" class="nav-link">
-              Empresas
+            <a routerLink="/dashboard" routerLinkActive="active" class="nav-link">
+              Dashboard
             </a>
-            <a routerLink="/usuarios" routerLinkActive="active" class="nav-link">
-              Usuarios
+            <a routerLink="/procesos" routerLinkActive="active" class="nav-link">
+              Procesos
             </a>
+            <a routerLink="/roles-proceso" routerLinkActive="active" class="nav-link">
+              Roles
+            </a>
+            @if (authService.isAdmin()) {
+              <a routerLink="/usuarios" routerLinkActive="active" class="nav-link">
+                Usuarios
+              </a>
+              <a routerLink="/empresas" routerLinkActive="active" class="nav-link">
+                Empresas
+              </a>
+            }
           </div>
 
           <div class="nav-user">
@@ -67,8 +78,11 @@ import { AuthService } from '../../services/auth.service';
       color: #111827;
     }
 
-    .brand-icon {
-      font-size: 1.5rem;
+    .brand-text {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
     }
 
     .nav-menu {
@@ -143,6 +157,7 @@ import { AuthService } from '../../services/auth.service';
         order: 3;
         width: 100%;
         justify-content: center;
+        flex-wrap: wrap;
       }
 
       .user-name {

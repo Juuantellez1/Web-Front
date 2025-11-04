@@ -1,12 +1,5 @@
-
 import { Routes } from '@angular/router';
-import { EmpresaListComponent } from './pages/empresas/empresa-list/empresa-list.component';
-import { EmpresaFormComponent } from './pages/empresas/empresa-form/empresa-form.component';
-import { UsuarioListComponent } from './pages/usuarios/usuario-list/usuario-list.component';
-import { UsuarioFormComponent } from './pages/usuarios/usuario-form/usuario-form.component';
-import { LoginComponent } from './pages/login/login.component';
-import { authGuard, loginGuard } from './guards/auth.guard';
-import {RegistroComponent} from './pages/registro/registro.component';
+import { authGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
   {
@@ -16,41 +9,100 @@ export const routes: Routes = [
   },
   {
     path: 'login',
-    component: LoginComponent,
-    canActivate: [loginGuard]
+    loadComponent: () => import('./pages/login/login.component').then(m => m.LoginComponent)
   },
   {
-    path: 'registro',
-    component: RegistroComponent
+    path: 'registro-empresa',
+    loadComponent: () => import('./pages/registro/registro.component').then(m => m.RegistroComponent)
+  },
+  {
+    path: 'dashboard',
+    loadComponent: () => import('./pages/dashboard/dashboard.component').then(m => m.DashboardComponent),
+    canActivate: [authGuard]
   },
   {
     path: 'empresas',
-    component: EmpresaListComponent,
-    canActivate: [authGuard]
-  },
-  {
-    path: 'empresas/nuevo',
-    component: EmpresaFormComponent,
-    canActivate: [authGuard]
-  },
-  {
-    path: 'empresas/editar/:id',
-    component: EmpresaFormComponent,
-    canActivate: [authGuard]
+    canActivate: [authGuard],
+    children: [
+      {
+        path: '',
+        loadComponent: () => import('./pages/empresas/empresa-list/empresa-list.component').then(m => m.EmpresaListComponent)
+      },
+      {
+        path: 'nuevo',
+        loadComponent: () => import('./pages/empresas/empresa-form/empresa-form.component').then(m => m.EmpresaFormComponent)
+      },
+      {
+        path: ':id/editar',
+        loadComponent: () => import('./pages/empresas/empresa-form/empresa-form.component').then(m => m.EmpresaFormComponent)
+      }
+    ]
   },
   {
     path: 'usuarios',
-    component: UsuarioListComponent,
-    canActivate: [authGuard]
+    canActivate: [authGuard],
+    children: [
+      {
+        path: '',
+        loadComponent: () => import('./pages/usuarios/usuario-list/usuario-list.component').then(m => m.UsuarioListComponent)
+      },
+      {
+        path: 'nuevo',
+        loadComponent: () => import('./pages/usuarios/usuario-form/usuario-form.component').then(m => m.UsuarioFormComponent)
+      },
+      {
+        path: ':id/editar',
+        loadComponent: () => import('./pages/usuarios/usuario-form/usuario-form.component').then(m => m.UsuarioFormComponent)
+      }
+    ]
   },
   {
-    path: 'usuarios/nuevo',
-    component: UsuarioFormComponent,
-    canActivate: [authGuard]
+    path: 'procesos',
+    canActivate: [authGuard],
+    children: [
+      {
+        path: '',
+        loadComponent: () => import('./pages/procesos/proceso-list/proceso-list.component').then(m => m.ProcesoListComponent)
+      },
+      {
+        path: 'nuevo',
+        loadComponent: () => import('./pages/procesos/proceso-form/proceso-form.component').then(m => m.ProcesoFormComponent)
+      },
+      {
+        path: ':id',
+        loadComponent: () => import('./pages/procesos/proceso-detalle/proceso-detalle.component').then(m => m.ProcesoDetalleComponent)
+      },
+      {
+        path: ':id/editar',
+        loadComponent: () => import('./pages/procesos/proceso-form/proceso-form.component').then(m => m.ProcesoFormComponent)
+      },
+      {
+        path: ':id/diagrama',
+        loadComponent: () => import('./pages/procesos/proceso-diagrama/proceso-diagrama.component').then(m => m.ProcesoDiagramaComponent)
+      }
+    ]
   },
   {
-    path: 'usuarios/editar/:id',
-    component: UsuarioFormComponent,
+    path: 'roles-proceso',
+    canActivate: [authGuard],
+    children: [
+      {
+        path: '',
+        loadComponent: () => import('./pages/roles-proceso/rol-proceso-list/rol-proceso-list.component').then(m => m.RolProcesoListComponent)
+      },
+      {
+        path: 'nuevo',
+        loadComponent: () => import('./pages/roles-proceso/rol-proceso-form/rol-proceso-form.component').then(m => m.RolProcesoFormComponent)
+      },
+      {
+        path: ':id/editar',
+        loadComponent: () => import('./pages/roles-proceso/rol-proceso-form/rol-proceso-form.component').then(m => m.RolProcesoFormComponent)
+      }
+    ]
+  },
+  {
+    path: 'perfil',
+    loadComponent: () => import('./pages/perfil/perfil.component').then(m => m.PerfilComponent),
     canActivate: [authGuard]
   },
   {

@@ -1,0 +1,124 @@
+<div class="container">
+  <div class="header">
+    <div>
+      <h1>Roles de Proceso</h1>
+      <p class="subtitle">Gestiona los roles que se asignarán a las actividades</p>
+    </div>
+    @if (canEdit()) {
+      <a routerLink="/roles-proceso/nuevo" class="btn btn-primary">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="12" y1="5" x2="12" y2="19"/>
+          <line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        Nuevo Rol
+      </a>
+    }
+  </div>
+
+  @if (loading()) {
+    <div class="loading">
+      <div class="spinner"></div>
+      <p>Cargando roles...</p>
+    </div>
+  } @else if (error()) {
+    <div class="error">{{ error() }}</div>
+  } @else if (roles().length === 0) {
+    <div class="empty-state">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+        <circle cx="8.5" cy="7" r="4"/>
+        <line x1="20" y1="8" x2="20" y2="14"/>
+        <line x1="23" y1="11" x2="17" y2="11"/>
+      </svg>
+      <h3>No hay roles de proceso</h3>
+      <p>Comienza creando tu primer rol de proceso</p>
+      @if (canEdit()) {
+        <a routerLink="/roles-proceso/nuevo" class="btn btn-primary">
+          Crear Primer Rol
+        </a>
+      }
+    </div>
+  } @else {
+    <div class="table-container">
+      <table>
+        <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Descripción</th>
+          <th>Actividades Asignadas</th>
+          <th>Procesos que lo Utilizan</th>
+          <th>Estado</th>
+          @if (canEdit()) {
+            <th>Acciones</th>
+          }
+        </tr>
+        </thead>
+        <tbody>
+          @for (rol of roles(); track rol.id) {
+            <tr [class.inactive-row]="!rol.activo">
+              <td>
+                <strong>{{ rol.nombre }}</strong>
+              </td>
+              <td>{{ rol.descripcion || '-' }}</td>
+              <td class="text-center">
+                <span class="badge badge-info">
+                  {{ rol.cantidadActividadesAsignadas || 0 }}
+                </span>
+              </td>
+              <td>
+                @if (rol.procesosUtilizados && rol.procesosUtilizados.length > 0) {
+                  <div class="procesos-list">
+                    @for (proceso of rol.procesosUtilizados; track proceso) {
+                      <span class="proceso-tag">{{ proceso }}</span>
+                    }
+                  </div>
+                } @else {
+                  <span class="text-muted">Sin uso</span>
+                }
+              </td>
+              <td>
+                @if (rol.activo) {
+                  <span class="badge badge-success">Activo</span>
+                } @else {
+                  <span class="badge badge-danger">Inactivo</span>
+                }
+              </td>
+              @if (canEdit()) {
+                <td>
+                  <div class="actions">
+                    <a [routerLink]="['/roles-proceso', rol.id, 'editar']" class="btn btn-edit" title="Editar">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                      </svg>
+                    </a>
+
+                    @if (rol.activo) {
+                      <button (click)="eliminarRol(rol)" class="btn btn-delete" title="Eliminar (soft)">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <polyline points="3 6 5 6 21 6"/>
+                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                        </svg>
+                      </button>
+                    }
+
+                    @if (!rol.activo) {
+                      <button (click)="eliminarPermanente(rol)" class="btn btn-danger" title="Eliminar permanentemente">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <polyline points="3 6 5 6 21 6"/>
+                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                          <line x1="10" y1="11" x2="10" y2="17"/>
+                          <line x1="14" y1="11" x2="14" y2="17"/>
+                        </svg>
+                      </button>
+                    }
+                  </div>
+                </td>
+              }
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

@@ -1,0 +1,224 @@
+
+<div class="container">
+  <div class="header">
+    <div>
+      <h1>Procesos</h1>
+      <p class="subtitle">Gestiona los procesos empresariales</p>
+    </div>
+    @if (canCreate()) {
+      <a routerLink="/procesos/nuevo" class="btn btn-primary">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="12" y1="5" x2="12" y2="19"/>
+          <line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        Nuevo Proceso
+      </a>
+    }
+  </div>
+
+  <!-- Filtros -->
+  <div class="filters-container">
+    <div class="filter-group">
+      <label for="busqueda">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/>
+          <path d="m21 21-4.35-4.35"/>
+        </svg>
+        Buscar
+      </label>
+      <input
+        type="text"
+        id="busqueda"
+        [value]="busqueda()"
+        (input)="onBusquedaChange($any($event.target).value)"
+        placeholder="Buscar por nombre o descripción..."
+      />
+    </div>
+
+    <div class="filter-group">
+      <label for="estado">Estado</label>
+      <select
+        id="estado"
+        [value]="estadoFiltro()"
+        (change)="onEstadoChange($any($event.target).value)"
+      >
+        <option value="TODOS">Todos</option>
+        <option value="BORRADOR">Borrador</option>
+        <option value="PUBLICADO">Publicado</option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label for="categoria">Categoría</label>
+      <select
+        id="categoria"
+        [value]="categoriaFiltro()"
+        (change)="onCategoriaChange($any($event.target).value)"
+      >
+        <option value="TODAS">Todas</option>
+        @for (cat of categorias(); track cat) {
+          <option [value]="cat">{{ cat }}</option>
+        }
+      </select>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="loading">
+      <div class="spinner"></div>
+      <p>Cargando procesos...</p>
+    </div>
+  } @else if (error()) {
+    <div class="error">{{ error() }}</div>
+  } @else if (procesosFiltrados().length === 0) {
+    <div class="empty-state">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+        <path d="M2 17l10 5 10-5M2 12l10 5 10-5"/>
+      </svg>
+      <h3>No se encontraron procesos</h3>
+      @if (busqueda() || estadoFiltro() !== 'TODOS' || categoriaFiltro() !== 'TODAS') {
+        <p>Intenta ajustar los filtros de búsqueda</p>
+      } @else {
+        <p>Comienza creando tu primer proceso</p>
+        @if (canCreate()) {
+          <a routerLink="/procesos/nuevo" class="btn btn-primary">
+            Crear Primer Proceso
+          </a>
+        }
+      }
+    </div>
+  } @else {
+    <div class="procesos-grid">
+      @for (proceso of procesosFiltrados(); track proceso.id) {
+        <div class="proceso-card" [class.inactive]="!proceso.activo">
+          <!-- Header del Card -->
+          <div class="card-header">
+            <div class="card-title-row">
+              <h3>{{ proceso.nombre }}</h3>
+              <div class="badges">
+                @if (proceso.estado === EstadoProceso.BORRADOR) {
+                  <span class="badge badge-warning">Borrador</span>
+                } @else {
+                  <span class="badge badge-success">Publicado</span>
+                }
+                @if (!proceso.activo) {
+                  <span class="badge badge-danger">Inactivo</span>
+                }
+              </div>
+            </div>
+            @if (proceso.categoria) {
+              <span class="categoria">{{ proceso.categoria }}</span>
+            }
+          </div>
+
+          <!-- Descripción -->
+          @if (proceso.descripcion) {
+            <p class="descripcion">{{ proceso.descripcion }}</p>
+          } @else {
+            <p class="descripcion sin-descripcion">Sin descripción</p>
+          }
+
+          <!-- Estadísticas -->
+          <div class="stats">
+            <div class="stat-item">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+              </svg>
+              <span>{{ proceso.cantidadActividades || 0 }} Actividades</span>
+            </div>
+            <div class="stat-item">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+              </svg>
+              <span>{{ proceso.cantidadGateways || 0 }} Gateways</span>
+            </div>
+            <div class="stat-item">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="5" y1="12" x2="19" y2="12"/>
+                <polyline points="12 5 19 12 12 19"/>
+              </svg>
+              <span>{{ proceso.cantidadArcos || 0 }} Arcos</span>
+            </div>
+          </div>
+
+          <!-- Fechas -->
+          <div class="fechas">
+            @if (proceso.fecha_registro) {
+              <small>Creado: {{ proceso.fecha_registro | date:'dd/MM/yyyy' }}</small>
+            }
+            @if (proceso.fecha_modificacion) {
+              <small>Modificado: {{ proceso.fecha_modificacion | date:'dd/MM/yyyy' }}</small>
+            }
+          </div>
+
+          <!-- Acciones -->
+          <div class="card-actions">
+            <a [routerLink]="['/procesos', proceso.id]" class="btn btn-view">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+              Ver
+            </a>
+
+            @if (canEdit()) {
+              <a [routerLink]="['/procesos', proceso.id, 'editar']" class="btn btn-edit">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                </svg>
+                Editar
+              </a>
+
+              <a [routerLink]="['/procesos', proceso.id, 'diagrama']" class="btn btn-diagram">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                </svg>
+                Diagrama
+              </a>
+            }
+
+            @if (canChangeState() && proceso.activo) {
+              <button (click)="cambiarEstado(proceso)" class="btn btn-state">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                </svg>
+                {{ proceso.estado === EstadoProceso.BORRADOR ? 'Publicar' : 'Despublicar' }}
+              </button>
+            }
+
+            @if (canDelete()) {
+              @if (proceso.activo) {
+                <button (click)="eliminarProceso(proceso)" class="btn btn-delete">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="3 6 5 6 21 6"/>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                  </svg>
+                  Eliminar
+                </button>
+              } @else {
+                <button (click)="reactivarProceso(proceso)" class="btn btn-success">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="23 4 23 10 17 10"/>
+                    <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+                  </svg>
+                  Reactivar
+                </button>
+                <button (click)="eliminarPermanente(proceso)" class="btn btn-danger">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="3 6 5 6 21 6"/>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                    <line x1="10" y1="11" x2="10" y2="17"/>
+                    <line x1="14" y1="11" x2="14" y2="17"/>
+                  </svg>
+                  Eliminar Permanente
+                </button>
+              }
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

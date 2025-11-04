@@ -1,0 +1,286 @@
+<div class="container">
+  @if (loading()) {
+    <div class="loading">
+      <div class="spinner"></div>
+      <p>Cargando proceso...</p>
+    </div>
+  } @else if (error()) {
+    <div class="error">
+      <p>{{ error() }}</p>
+      <a routerLink="/procesos" class="btn btn-primary">Volver a Procesos</a>
+    </div>
+  } @else if (proceso()) {
+    <!-- Header -->
+    <div class="header">
+      <div class="header-content">
+        <div class="title-row">
+          <h1>{{ proceso()!.nombre }}</h1>
+          <div class="badges">
+            @if (proceso()!.estado === EstadoProceso.BORRADOR) {
+              <span class="badge badge-warning">Borrador</span>
+            } @else {
+              <span class="badge badge-success">Publicado</span>
+            }
+            @if (!proceso()!.activo) {
+              <span class="badge badge-danger">Inactivo</span>
+            }
+          </div>
+        </div>
+
+        @if (proceso()!.categoria) {
+          <span class="categoria">{{ proceso()!.categoria }}</span>
+        }
+
+        @if (proceso()!.descripcion) {
+          <p class="descripcion">{{ proceso()!.descripcion }}</p>
+        }
+      </div>
+
+      <div class="header-actions">
+        <a routerLink="/procesos" class="btn btn-secondary">
+          ← Volver
+        </a>
+        @if (canEdit()) {
+          <a [routerLink]="['/procesos', proceso()!.id, 'editar']" class="btn btn-edit">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+            </svg>
+            Editar
+          </a>
+          <a [routerLink]="['/procesos', proceso()!.id, 'diagrama']" class="btn btn-diagram">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+            </svg>
+            Ver Diagrama
+          </a>
+        }
+      </div>
+    </div>
+
+    <!-- Estadísticas Resumen -->
+    <div class="stats-summary">
+      <div class="stat-card">
+        <div class="stat-icon blue">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+          </svg>
+        </div>
+        <div class="stat-content">
+          <h3>{{ proceso()!.actividades?.length || 0 }}</h3>
+          <p>Actividades</p>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon purple">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+          </svg>
+        </div>
+        <div class="stat-content">
+          <h3>{{ proceso()!.gateways?.length || 0 }}</h3>
+          <p>Gateways</p>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon green">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="5" y1="12" x2="19" y2="12"/>
+            <polyline points="12 5 19 12 12 19"/>
+          </svg>
+        </div>
+        <div class="stat-content">
+          <h3>{{ proceso()!.arcos?.length || 0 }}</h3>
+          <p>Arcos</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabs de Contenido -->
+    <div class="tabs-container">
+      <div class="tabs-header">
+        <button
+          class="tab-button"
+          [class.active]="tabActiva() === 'actividades'"
+          (click)="cambiarTab('actividades')"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+          </svg>
+          Actividades ({{ proceso()!.actividades?.length || 0 }})
+        </button>
+        <button
+          class="tab-button"
+          [class.active]="tabActiva() === 'gateways'"
+          (click)="cambiarTab('gateways')"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+          </svg>
+          Gateways ({{ proceso()!.gateways?.length || 0 }})
+        </button>
+        <button
+          class="tab-button"
+          [class.active]="tabActiva() === 'arcos'"
+          (click)="cambiarTab('arcos')"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="5" y1="12" x2="19" y2="12"/>
+            <polyline points="12 5 19 12 12 19"/>
+          </svg>
+          Arcos ({{ proceso()!.arcos?.length || 0 }})
+        </button>
+      </div>
+
+      <div class="tabs-content">
+        <!-- Tab Actividades -->
+        @if (tabActiva() === 'actividades') {
+          <div class="tab-panel">
+            @if (proceso()!.actividades && proceso()!.actividades.length > 0) {
+              <div class="items-grid">
+                @for (actividad of proceso()!.actividades; track actividad.id) {
+                  <div class="item-card" [class.inactive]="!actividad.activo">
+                    <div class="item-header">
+                      <h3>{{ actividad.nombre }}</h3>
+                      <span class="tipo-badge" [class]="getTipoActividadClass(actividad.tipo)">
+                        {{ actividad.tipo }}
+                      </span>
+                    </div>
+                    @if (actividad.descripcion) {
+                      <p class="item-descripcion">{{ actividad.descripcion }}</p>
+                    }
+                    @if (actividad.rolResponsableNombre) {
+                      <div class="item-meta">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                          <circle cx="8.5" cy="7" r="4"/>
+                        </svg>
+                        <span>{{ actividad.rolResponsableNombre }}</span>
+                      </div>
+                    }
+                    @if (!actividad.activo) {
+                      <span class="badge badge-danger">Inactivo</span>
+                    }
+                  </div>
+                }
+              </div>
+            } @else {
+              <div class="empty-tab">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                </svg>
+                <p>No hay actividades definidas en este proceso</p>
+                @if (canEdit()) {
+                  <a [routerLink]="['/procesos', proceso()!.id, 'diagrama']" class="btn btn-primary">
+                    Agregar Actividades
+                  </a>
+                }
+              </div>
+            }
+          </div>
+        }
+
+        <!-- Tab Gateways -->
+        @if (tabActiva() === 'gateways') {
+          <div class="tab-panel">
+            @if (proceso()!.gateways && proceso()!.gateways.length > 0) {
+              <div class="items-grid">
+                @for (gateway of proceso()!.gateways; track gateway.id) {
+                  <div class="item-card" [class.inactive]="!gateway.activo">
+                    <div class="item-header">
+                      <h3>{{ gateway.nombre }}</h3>
+                      <span class="tipo-badge" [class]="getTipoGatewayClass(gateway.tipo)">
+                        {{ gateway.tipo }}
+                      </span>
+                    </div>
+                    @if (gateway.descripcion) {
+                      <p class="item-descripcion">{{ gateway.descripcion }}</p>
+                    }
+                    <div class="gateway-stats">
+                      <div class="gateway-stat">
+                        <span class="stat-label">Entrantes:</span>
+                        <span class="stat-value">{{ gateway.cantidadArcosEntrantes || 0 }}</span>
+                      </div>
+                      <div class="gateway-stat">
+                        <span class="stat-label">Salientes:</span>
+                        <span class="stat-value">{{ gateway.cantidadArcosSalientes || 0 }}</span>
+                      </div>
+                    </div>
+                    @if (!gateway.activo) {
+                      <span class="badge badge-danger">Inactivo</span>
+                    }
+                  </div>
+                }
+              </div>
+            } @else {
+              <div class="empty-tab">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                </svg>
+                <p>No hay gateways definidos en este proceso</p>
+                @if (canEdit()) {
+                  <a [routerLink]="['/procesos', proceso()!.id, 'diagrama']" class="btn btn-primary">
+                    Agregar Gateways
+                  </a>
+                }
+              </div>
+            }
+          </div>
+        }
+
+        <!-- Tab Arcos -->
+        @if (tabActiva() === 'arcos') {
+          <div class="tab-panel">
+            @if (proceso()!.arcos && proceso()!.arcos.length > 0) {
+              <div class="arcos-list">
+                @for (arco of proceso()!.arcos; track arco.id) {
+                  <div class="arco-item" [class.inactive]="!arco.activo">
+                    <div class="arco-flow">
+                      <div class="arco-node origen">
+                        <span class="node-tipo">{{ arco.tipoOrigen }}</span>
+                        <span class="node-nombre">{{ arco.origenNombre || 'ID: ' + arco.origenId }}</span>
+                      </div>
+                      <div class="arco-arrow">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <line x1="5" y1="12" x2="19" y2="12"/>
+                          <polyline points="12 5 19 12 12 19"/>
+                        </svg>
+                      </div>
+                      <div class="arco-node destino">
+                        <span class="node-tipo">{{ arco.tipoDestino }}</span>
+                        <span class="node-nombre">{{ arco.destinoNombre || 'ID: ' + arco.destinoId }}</span>
+                      </div>
+                    </div>
+                    @if (arco.condicion) {
+                      <div class="arco-condicion">
+                        <strong>Condición:</strong> {{ arco.condicion }}
+                      </div>
+                    }
+                    @if (!arco.activo) {
+                      <span class="badge badge-danger">Inactivo</span>
+                    }
+                  </div>
+                }
+              </div>
+            } @else {
+              <div class="empty-tab">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="5" y1="12" x2="19" y2="12"/>
+                  <polyline points="12 5 19 12 12 19"/>
+                </svg>
+                <p>No hay arcos definidos en este proceso</p>
+                @if (canEdit()) {
+                  <a [routerLink]="['/procesos', proceso()!.id, 'diagrama']" class="btn btn-primary">
+                    Conectar Elementos
+                  </a>
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>

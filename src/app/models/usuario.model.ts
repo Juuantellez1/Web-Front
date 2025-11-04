@@ -1,3 +1,5 @@
+import { RolUsuario } from './enums';
+
 export interface Usuario {
   id?: number;
   empresaId: number;
@@ -5,11 +7,9 @@ export interface Usuario {
   apellido: string;
   correo: string;
   password?: string;
-  rolUsuario: 'ADMIN' | 'EDITOR' | 'LECTOR';
+  rolUsuario: RolUsuario;
   activo?: boolean;
   ultimo_login?: string;
   fecha_registro?: string;
   fecha_modificacion?: string;
 }
-
-export type RolUsuario = 'ADMIN' | 'EDITOR' | 'LECTOR';

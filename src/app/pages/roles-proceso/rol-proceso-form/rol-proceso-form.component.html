@@ -1,0 +1,70 @@
+<div class="container">
+  <div class="header">
+    <h1>{{ isEditMode() ? 'Editar Rol de Proceso' : 'Nuevo Rol de Proceso' }}</h1>
+    <a routerLink="/roles-proceso" class="btn btn-secondary">← Volver</a>
+  </div>
+
+  @if (error()) {
+    <div class="error-message">{{ error() }}</div>
+  }
+
+  <div class="form-container">
+    <form [formGroup]="rolForm" (ngSubmit)="onSubmit()">
+      <div class="form-group">
+        <label for="nombre">Nombre del Rol *</label>
+        <input
+          type="text"
+          id="nombre"
+          formControlName="nombre"
+          [class.error]="hasError('nombre')"
+          placeholder="Ej: Analista, Supervisor, Auditor"
+        />
+        @if (hasError('nombre')) {
+          <span class="error-text">{{ getErrorMessage('nombre') }}</span>
+        }
+        <span class="help-text">El nombre debe ser descriptivo y representar una función dentro del proceso</span>
+      </div>
+
+      <div class="form-group">
+        <label for="descripcion">Descripción</label>
+        <textarea
+          id="descripcion"
+          formControlName="descripcion"
+          [class.error]="hasError('descripcion')"
+          placeholder="Describe las responsabilidades y funciones de este rol"
+          rows="4"
+        ></textarea>
+        @if (hasError('descripcion')) {
+          <span class="error-text">{{ getErrorMessage('descripcion') }}</span>
+        }
+        <span class="help-text">Opcional: Agrega detalles sobre las responsabilidades de este rol</span>
+      </div>
+
+      <div class="info-box">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="16" x2="12" y2="12"/>
+          <line x1="12" y1="8" x2="12.01" y2="8"/>
+        </svg>
+        <div>
+          <strong>¿Qué es un Rol de Proceso?</strong>
+          <p>Los roles de proceso representan funciones o responsabilidades dentro de tu organización. Se asignan a las actividades para indicar quién es responsable de ejecutarlas. Un mismo rol puede usarse en múltiples procesos.</p>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" routerLink="/roles-proceso" class="btn btn-secondary">
+          Cancelar
+        </button>
+        <button type="submit" class="btn btn-primary" [disabled]="loading() || rolForm.invalid">
+          @if (loading()) {
+            <span class="spinner-small"></span>
+            <span>Guardando...</span>
+          } @else {
+            <span>{{ isEditMode() ? 'Actualizar Rol' : 'Crear Rol' }}</span>
+          }
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

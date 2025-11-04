@@ -1,0 +1,149 @@
+
+<div class="container">
+  <div class="header">
+    <h1>{{ isEditMode() ? 'Editar Proceso' : 'Nuevo Proceso' }}</h1>
+    <a routerLink="/procesos" class="btn btn-secondary">← Volver</a>
+  </div>
+
+  @if (error()) {
+    <div class="error-message">{{ error() }}</div>
+  }
+
+  <div class="form-container">
+    <form [formGroup]="procesoForm" (ngSubmit)="onSubmit()">
+      <!-- Información Básica -->
+      <div class="form-section">
+        <h2 class="section-title">Información Básica</h2>
+
+        <div class="form-group">
+          <label for="nombre">Nombre del Proceso *</label>
+          <input
+            type="text"
+            id="nombre"
+            formControlName="nombre"
+            [class.error]="hasError('nombre')"
+            placeholder="Ej: Proceso de Ventas, Gestión de Compras"
+          />
+          @if (hasError('nombre')) {
+            <span class="error-text">{{ getErrorMessage('nombre') }}</span>
+          }
+          <span class="help-text">Nombre descriptivo que identifique claramente el proceso</span>
+        </div>
+
+        <div class="form-group">
+          <label for="descripcion">Descripción</label>
+          <textarea
+            id="descripcion"
+            formControlName="descripcion"
+            [class.error]="hasError('descripcion')"
+            placeholder="Describe el objetivo y alcance de este proceso"
+            rows="4"
+          ></textarea>
+          @if (hasError('descripcion')) {
+            <span class="error-text">{{ getErrorMessage('descripcion') }}</span>
+          }
+          <span class="help-text">Opcional: Agrega detalles sobre el propósito del proceso</span>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="categoria">Categoría</label>
+            <input
+              type="text"
+              id="categoria"
+              formControlName="categoria"
+              [class.error]="hasError('categoria')"
+              placeholder="Ej: Ventas, Logística, RR.HH."
+              list="categorias-sugeridas"
+            />
+            <datalist id="categorias-sugeridas">
+              <option value="Ventas">
+              <option value="Compras">
+              <option value="Logística">
+              <option value="Recursos Humanos">
+              <option value="Finanzas">
+              <option value="Producción">
+              <option value="Calidad">
+              <option value="Servicio al Cliente">
+            </datalist>
+            @if (hasError('categoria')) {
+              <span class="error-text">{{ getErrorMessage('categoria') }}</span>
+            }
+            <span class="help-text">Agrupa procesos por área funcional</span>
+          </div>
+
+          <div class="form-group">
+            <label for="estado">Estado *</label>
+            <select
+              id="estado"
+              formControlName="estado"
+              [class.error]="hasError('estado')"
+            >
+              <option [value]="EstadoProceso.BORRADOR">Borrador</option>
+              <option [value]="EstadoProceso.PUBLICADO">Publicado</option>
+            </select>
+            @if (hasError('estado')) {
+              <span class="error-text">{{ getErrorMessage('estado') }}</span>
+            }
+            <span class="help-text">
+              Borrador: En construcción | Publicado: Disponible para uso
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Información sobre los pasos siguientes -->
+      @if (!isEditMode()) {
+        <div class="info-box">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="16" x2="12" y2="12"/>
+            <line x1="12" y1="8" x2="12.01" y2="8"/>
+          </svg>
+          <div>
+            <strong>Próximos pasos después de crear el proceso:</strong>
+            <ol>
+              <li>Define los <strong>Roles de Proceso</strong> que participarán</li>
+              <li>Agrega <strong>Actividades</strong> que componen el proceso</li>
+              <li>Crea <strong>Gateways</strong> para puntos de decisión</li>
+              <li>Conecta los elementos con <strong>Arcos</strong> en el diagrama</li>
+              <li>Publica el proceso cuando esté completo</li>
+            </ol>
+          </div>
+        </div>
+      } @else {
+        <div class="info-box warning">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/>
+            <line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+          <div>
+            <strong>Importante:</strong>
+            <p>Los cambios en el proceso pueden afectar el diagrama existente. Asegúrate de revisar el diagrama después de guardar los cambios.</p>
+          </div>
+        </div>
+      }
+
+      <!-- Acciones -->
+      <div class="form-actions">
+        <button type="button" routerLink="/procesos" class="btn btn-secondary">
+          Cancelar
+        </button>
+        <button type="submit" class="btn btn-primary" [disabled]="loading() || procesoForm.invalid">
+          @if (loading()) {
+            <span class="spinner-small"></span>
+            <span>Guardando...</span>
+          } @else {
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+              <polyline points="17 21 17 13 7 13 7 21"/>
+              <polyline points="7 3 7 8 15 8"/>
+            </svg>
+            <span>{{ isEditMode() ? 'Actualizar Proceso' : 'Crear Proceso' }}</span>
+          }
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
