@@ -11,4 +11,6 @@ export interface ActividadDto {
   activo?: boolean;
   fecha_registro?: string;
   fecha_modificacion?: string;
+  x?: number;
+  y?: number;
 }

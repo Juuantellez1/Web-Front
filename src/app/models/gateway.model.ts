@@ -11,4 +11,6 @@ export interface GatewayDto {
   fecha_modificacion?: string;
   cantidadArcosEntrantes?: number;
   cantidadArcosSalientes?: number;
+  x?: number;
+  y?: number;
 }
