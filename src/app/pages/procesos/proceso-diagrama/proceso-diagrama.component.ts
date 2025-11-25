@@ -17,6 +17,15 @@ import { ArcoDto } from '../../../models/arco.model';
 import { RolProcesoDto } from '../../../models/rol-proceso.model';
 import { TipoActividad, TipoGateway, TipoNodo } from '../../../models/enums';
 
+// Interfaces extendidas para el manejo visual sin afectar el modelo base
+interface ActividadVisual extends ActividadDto {
+  initialPoint: { x: number, y: number };
+}
+
+interface GatewayVisual extends GatewayDto {
+  initialPoint: { x: number, y: number };
+}
+
 @Component({
   selector: 'app-proceso-diagrama',
   standalone: true,
@@ -37,8 +46,8 @@ export class ProcesoDiagramaComponent implements OnInit {
   proceso = signal<ProcesoDto | null>(null);
   procesoId: number | null = null;
 
-  actividades = signal<ActividadDto[]>([]);
-  gateways = signal<GatewayDto[]>([]);
+  actividades = signal<ActividadVisual[]>([]);
+  gateways = signal<GatewayVisual[]>([]);
   arcos = signal<ArcoDto[]>([]);
   rolesDisponibles = signal<RolProcesoDto[]>([]);
 
@@ -51,7 +60,6 @@ export class ProcesoDiagramaComponent implements OnInit {
   gatewayForm!: FormGroup;
   arcoForm!: FormGroup;
 
-  vistaActiva = signal<'actividades' | 'gateways' | 'arcos'>('actividades');
   dibujandoArco = signal<boolean>(false);
   nodoOrigen: any = null;
   punteroActual = { x: 0, y: 0 };
@@ -115,7 +123,7 @@ export class ProcesoDiagramaComponent implements OnInit {
         this.cargarElementos();
         this.cargarRoles();
       },
-      error: (err) => {
+      error: () => {
         this.error.set('Error al cargar el proceso');
         this.loading.set(false);
       }
@@ -126,12 +134,24 @@ export class ProcesoDiagramaComponent implements OnInit {
     if (!this.procesoId) return;
 
     this.actividadService.listar(this.procesoId).subscribe({
-      next: (actividades) => this.actividades.set(actividades),
+      next: (actividades) => {
+        const visuales = actividades.map(a => ({
+          ...a,
+          initialPoint: { x: a.x || 50, y: a.y || 50 }
+        }));
+        this.actividades.set(visuales);
+      },
       error: (err) => console.error('Error al cargar actividades:', err)
     });
 
     this.gatewayService.listar(this.procesoId).subscribe({
-      next: (gateways) => this.gateways.set(gateways),
+      next: (gateways) => {
+        const visuales = gateways.map(g => ({
+          ...g,
+          initialPoint: { x: g.x || 50, y: g.y || 50 }
+        }));
+        this.gateways.set(visuales);
+      },
       error: (err) => console.error('Error al cargar gateways:', err)
     });
 
@@ -156,22 +176,24 @@ export class ProcesoDiagramaComponent implements OnInit {
     });
   }
 
-  cambiarVista(vista: 'actividades' | 'gateways' | 'arcos'): void {
-    this.vistaActiva.set(vista);
-    this.cancelarEdicion();
-  }
+  // --- Lógica Drag & Drop Corregida ---
 
   onDragMoved(event: CdkDragMove, item: any) {
+    // Solo actualizamos x/y para que las líneas se muevan visualmente
+    // NO tocamos 'initialPoint' aquí para evitar el feedback loop
     const pos = event.source.getFreeDragPosition();
     item.x = pos.x;
     item.y = pos.y;
-    this.arcos.set([...this.arcos()]);
+    this.arcos.set([...this.arcos()]); // Forzar repintado de líneas
   }
 
   onDragEnded(event: CdkDragEnd, item: any, tipo: 'ACTIVIDAD' | 'GATEWAY') {
     const pos = event.source.getFreeDragPosition();
+
+    // Actualizamos la posición final y el punto inicial para el futuro
     item.x = pos.x;
     item.y = pos.y;
+    item.initialPoint = { x: pos.x, y: pos.y };
 
     if (tipo === 'ACTIVIDAD') {
       this.actividadService.actualizar(this.procesoId!, item.id, item).subscribe();
@@ -179,6 +201,8 @@ export class ProcesoDiagramaComponent implements OnInit {
       this.gatewayService.actualizar(this.procesoId!, item.id, item).subscribe();
     }
   }
+
+  // --- Lógica de Arcos ---
 
   iniciarArco(evento: MouseEvent, nodo: any, tipo: TipoNodo) {
     evento.stopPropagation();
@@ -217,7 +241,7 @@ export class ProcesoDiagramaComponent implements OnInit {
         this.arcos.update(lista => [...lista, arco]);
         this.cancelarArco();
       },
-      error: (err) => {
+      error: () => {
         alert('Error al crear la conexión');
         this.cancelarArco();
       }
@@ -255,7 +279,7 @@ export class ProcesoDiagramaComponent implements OnInit {
   }
 
   private actualizarPuntero(evento: MouseEvent) {
-    const canvas = document.querySelector('.canvas-area');
+    const canvas = document.querySelector('.canvas-container');
     if (canvas) {
       const rect = canvas.getBoundingClientRect();
       this.punteroActual = {
@@ -264,6 +288,8 @@ export class ProcesoDiagramaComponent implements OnInit {
       };
     }
   }
+
+  // --- CRUD ---
 
   nuevaActividad(): void {
     this.modoEdicion.set('actividad');
@@ -288,12 +314,16 @@ export class ProcesoDiagramaComponent implements OnInit {
       return;
     }
 
+    // Lógica aleatoria para evitar superposición en nuevos elementos
+    const randomX = Math.floor(Math.random() * 200) + 50;
+    const randomY = Math.floor(Math.random() * 200) + 50;
+
     const actividadData: ActividadDto = {
       ...this.actividadForm.value,
       procesoId: this.procesoId,
       activo: true,
-      x: this.elementoEditando()?.x || 0,
-      y: this.elementoEditando()?.y || 0
+      x: this.elementoEditando()?.x || randomX,
+      y: this.elementoEditando()?.y || randomY
     };
 
     const request = this.elementoEditando()
@@ -305,7 +335,7 @@ export class ProcesoDiagramaComponent implements OnInit {
         this.cancelarEdicion();
         this.cargarElementos();
       },
-      error: (err) => alert('Error al guardar la actividad')
+      error: () => alert('Error al guardar la actividad')
     });
   }
 
@@ -341,12 +371,15 @@ export class ProcesoDiagramaComponent implements OnInit {
       return;
     }
 
+    const randomX = Math.floor(Math.random() * 200) + 50;
+    const randomY = Math.floor(Math.random() * 200) + 50;
+
     const gatewayData: GatewayDto = {
       ...this.gatewayForm.value,
       procesoId: this.procesoId,
       activo: true,
-      x: this.elementoEditando()?.x || 0,
-      y: this.elementoEditando()?.y || 0
+      x: this.elementoEditando()?.x || randomX,
+      y: this.elementoEditando()?.y || randomY
     };
 
     const request = this.elementoEditando()
@@ -368,60 +401,18 @@ export class ProcesoDiagramaComponent implements OnInit {
 
     this.gatewayService.eliminar(this.procesoId, gateway.id).subscribe({
       next: () => this.cargarElementos(),
-      error: (err) => alert(err.error?.mensaje || 'Error al eliminar el gateway')
-    });
-  }
-
-  nuevoArco(): void {
-    this.modoEdicion.set('arco');
-    this.elementoEditando.set(null);
-    this.arcoForm.reset({
-      tipoOrigen: TipoNodo.ACTIVIDAD,
-      tipoDestino: TipoNodo.ACTIVIDAD
+      error: () => alert('Error al eliminar el gateway')
     });
   }
 
   editarArco(arco: ArcoDto): void {
-    this.modoEdicion.set('arco');
-    this.elementoEditando.set(arco);
-    this.arcoForm.patchValue({
-      tipoOrigen: arco.tipoOrigen,
-      origenId: arco.origenId,
-      tipoDestino: arco.tipoDestino,
-      destinoId: arco.destinoId,
-      condicion: arco.condicion
-    });
-  }
-
-  guardarArco(): void {
-    if (this.arcoForm.invalid || !this.procesoId) {
-      this.arcoForm.markAllAsTouched();
-      return;
+    if (confirm('¿Eliminar esta conexión?')) {
+      this.eliminarArco(arco);
     }
-
-    const arcoData: ArcoDto = {
-      ...this.arcoForm.value,
-      procesoId: this.procesoId,
-      activo: true
-    };
-
-    const request = this.elementoEditando()
-      ? this.arcoService.actualizar(this.procesoId, this.elementoEditando().id, arcoData)
-      : this.arcoService.crear(this.procesoId, arcoData);
-
-    request.subscribe({
-      next: () => {
-        this.cancelarEdicion();
-        this.cargarElementos();
-      },
-      error: (err) => alert(err.error?.mensaje || 'Error al guardar el arco')
-    });
   }
 
   eliminarArco(arco: ArcoDto): void {
     if (!arco.id || !this.procesoId) return;
-    if (!confirm('¿Eliminar este arco?')) return;
-
     this.arcoService.eliminar(this.procesoId, arco.id).subscribe({
       next: () => this.cargarElementos(),
       error: () => alert('Error al eliminar el arco')
@@ -433,35 +424,5 @@ export class ProcesoDiagramaComponent implements OnInit {
     this.elementoEditando.set(null);
     this.actividadForm.reset({ tipo: TipoActividad.MANUAL });
     this.gatewayForm.reset({ tipo: TipoGateway.EXCLUSIVO });
-    this.arcoForm.reset({ tipoOrigen: TipoNodo.ACTIVIDAD, tipoDestino: TipoNodo.ACTIVIDAD });
-  }
-
-  getNodosOrigen(): any[] {
-    const tipo = this.arcoForm.get('tipoOrigen')?.value;
-    if (tipo === TipoNodo.ACTIVIDAD) return this.actividades().filter(a => a.activo);
-    if (tipo === TipoNodo.GATEWAY) return this.gateways().filter(g => g.activo);
-    if (tipo === TipoNodo.EVENTO_INICIO) return [{ id: 0, nombre: 'Evento Inicio' }];
-    return [];
-  }
-
-  getNodosDestino(): any[] {
-    const tipo = this.arcoForm.get('tipoDestino')?.value;
-    if (tipo === TipoNodo.ACTIVIDAD) return this.actividades().filter(a => a.activo);
-    if (tipo === TipoNodo.GATEWAY) return this.gateways().filter(g => g.activo);
-    if (tipo === TipoNodo.EVENTO_FIN) return [{ id: 0, nombre: 'Evento Fin' }];
-    return [];
-  }
-
-  hasError(form: FormGroup, field: string): boolean {
-    const control = form.get(field);
-    return !!(control && control.invalid && (control.dirty || control.touched));
-  }
-
-  getErrorMessage(form: FormGroup, field: string): string {
-    const control = form.get(field);
-    if (!control || !control.errors) return '';
-    if (control.errors['required']) return 'Este campo es requerido';
-    if (control.errors['maxlength']) return `Máximo ${control.errors['maxlength'].requiredLength} caracteres`;
-    return 'Campo inválido';
   }
 }

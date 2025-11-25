@@ -25,7 +25,7 @@
       </div>
     </div>
 
-    <div class="diagram-layout">
+    <div class="content-layout">
       <div class="sidebar">
         <h3>Herramientas</h3>
         <button class="tool-btn" (click)="nuevaActividad()">
@@ -41,7 +41,7 @@
         </div>
       </div>
 
-      <div class="canvas-area"
+      <div class="canvas-container"
            (mousemove)="moverArcoTemporal($event)"
            (mouseup)="cancelarArco()">
 
@@ -71,7 +71,7 @@
         @for (act of actividades(); track act.id) {
           <div class="node actividad"
                cdkDrag
-               [cdkDragFreeDragPosition]="{x: act.x || 0, y: act.y || 0}"
+               [cdkDragFreeDragPosition]="act.initialPoint"
                (cdkDragMoved)="onDragMoved($event, act)"
                (cdkDragEnded)="onDragEnded($event, act, 'ACTIVIDAD')"
                (mouseup)="finalizarArco(act, TipoNodo.ACTIVIDAD); $event.stopPropagation()"
@@ -91,7 +91,7 @@
         @for (gw of gateways(); track gw.id) {
           <div class="node gateway"
                cdkDrag
-               [cdkDragFreeDragPosition]="{x: gw.x || 0, y: gw.y || 0}"
+               [cdkDragFreeDragPosition]="gw.initialPoint"
                (cdkDragMoved)="onDragMoved($event, gw)"
                (cdkDragEnded)="onDragEnded($event, gw, 'GATEWAY')"
                (mouseup)="finalizarArco(gw, TipoNodo.GATEWAY); $event.stopPropagation()"
