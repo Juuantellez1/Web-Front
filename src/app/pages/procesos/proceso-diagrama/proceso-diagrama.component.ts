@@ -176,21 +176,16 @@ export class ProcesoDiagramaComponent implements OnInit {
     });
   }
 
-  // --- Lógica Drag & Drop Corregida ---
-
   onDragMoved(event: CdkDragMove, item: any) {
-    // Solo actualizamos x/y para que las líneas se muevan visualmente
-    // NO tocamos 'initialPoint' aquí para evitar el feedback loop
     const pos = event.source.getFreeDragPosition();
     item.x = pos.x;
     item.y = pos.y;
-    this.arcos.set([...this.arcos()]); // Forzar repintado de líneas
+    this.arcos.set([...this.arcos()]);
   }
 
   onDragEnded(event: CdkDragEnd, item: any, tipo: 'ACTIVIDAD' | 'GATEWAY') {
     const pos = event.source.getFreeDragPosition();
 
-    // Actualizamos la posición final y el punto inicial para el futuro
     item.x = pos.x;
     item.y = pos.y;
     item.initialPoint = { x: pos.x, y: pos.y };
@@ -201,8 +196,6 @@ export class ProcesoDiagramaComponent implements OnInit {
       this.gatewayService.actualizar(this.procesoId!, item.id, item).subscribe();
     }
   }
-
-  // --- Lógica de Arcos ---
 
   iniciarArco(evento: MouseEvent, nodo: any, tipo: TipoNodo) {
     evento.stopPropagation();
@@ -289,8 +282,6 @@ export class ProcesoDiagramaComponent implements OnInit {
     }
   }
 
-  // --- CRUD ---
-
   nuevaActividad(): void {
     this.modoEdicion.set('actividad');
     this.elementoEditando.set(null);
@@ -314,7 +305,6 @@ export class ProcesoDiagramaComponent implements OnInit {
       return;
     }
 
-    // Lógica aleatoria para evitar superposición en nuevos elementos
     const randomX = Math.floor(Math.random() * 200) + 50;
     const randomY = Math.floor(Math.random() * 200) + 50;
 
