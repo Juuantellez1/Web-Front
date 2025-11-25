@@ -14,6 +14,7 @@ interface UserSession {
   nombreCompleto: string;
   correo: string;
   rol: RolUsuario;
+  token: string;
 }
 
 @Injectable({
@@ -44,7 +45,8 @@ export class AuthService {
               nombreEmpresa: response.nombreEmpresa,
               nombreCompleto: `${response.nombre} ${response.apellido}`,
               correo: response.correo,
-              rol: response.rolUsuario
+              rol: response.rolUsuario,
+              token: response.token
             };
 
             localStorage.setItem(this.STORAGE_KEY, JSON.stringify(session));
@@ -70,10 +72,14 @@ export class AuthService {
     return null;
   }
 
-  // AGREGAR ESTE MÉTODO para el navbar
   getCurrentUserFullName(): string {
     const user = this.getCurrentUser();
     return user?.nombreCompleto || 'Usuario';
+  }
+
+  getToken(): string | null {
+    const session = this.getCurrentUser();
+    return session ? session.token : null;
   }
 
   checkAuthStatus(): void {

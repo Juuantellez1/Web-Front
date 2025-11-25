@@ -7,23 +7,25 @@ import { AuthService } from '../services/auth.service';
 export const httpInterceptor: HttpInterceptorFn = (req, next) => {
   const router = inject(Router);
   const authService = inject(AuthService);
+  const token = authService.getToken();
 
-  return next(req).pipe(
+  let authReq = req;
+  if (token) {
+    authReq = req.clone({
+      setHeaders: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+  }
+
+  return next(authReq).pipe(
     catchError((error) => {
-      // Si es error 401 (no autorizado) o 403 (prohibido)
       if (error.status === 401 || error.status === 403) {
-        console.error('Error de autenticación:', error);
-
-        // Limpiar sesión y redirigir al login
         authService.logout();
-
-        // NO redirigir si ya estamos en login o registro
-        const currentUrl = window.location.pathname;
-        if (!currentUrl.includes('/login') && !currentUrl.includes('/registro')) {
+        if (!window.location.pathname.includes('/login')) {
           router.navigate(['/login']);
         }
       }
-
       return throwError(() => error);
     })
   );

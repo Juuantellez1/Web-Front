@@ -10,4 +10,5 @@ export interface LoginResponse {
   rolUsuario: RolUsuario;
   mensaje: string;
   exitoso: boolean;
+  token: string;
 }
