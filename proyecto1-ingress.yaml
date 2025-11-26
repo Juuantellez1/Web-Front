@@ -1,0 +1,30 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: proyecto1-ingress
+  namespace: press
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+spec:
+  ingressClassName: public
+  rules:
+    - host: 10.43.103.200.nip.io
+      http:
+        paths:
+          # BACKEND: todo lo que empiece por /api va al servicio proyecto1
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: proyecto1
+                port:
+                  number: 80
+
+          # FRONTEND: cualquier otra ruta (/, /login, /dashboard, /usuarios, etc.)
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: proyecto1-front
+                port:
+                  number: 80
