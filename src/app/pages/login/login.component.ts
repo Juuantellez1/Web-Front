@@ -22,12 +22,10 @@ export class LoginComponent implements OnInit {
   loading = signal(false);
   error = signal<string | null>(null);
   showPassword = signal(false);
-  returnUrl: string = '/empresas';
+  returnUrl: string = '/dashboard';
 
   ngOnInit(): void {
-    // Obtener la URL de retorno si existe
-    this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/empresas';
-
+    this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/dashboard';
     this.inicializarFormulario();
   }
 
@@ -49,17 +47,42 @@ export class LoginComponent implements OnInit {
 
     const credentials: LoginRequest = this.loginForm.value;
 
+    console.log('Intentando login con:', credentials);
+
     this.authService.login(credentials).subscribe({
       next: (response) => {
-        console.log('Login exitoso:', response);
-        this.loading.set(false);
-        // Redirigir a la URL guardada o a empresas
-        this.router.navigate([this.returnUrl]);
+        console.log('Respuesta del servidor:', response);
+        if (response.exitoso) {
+          this.loading.set(false);
+          setTimeout(() => {
+            this.router.navigate([this.returnUrl]);
+          }, 0);
+        } else {
+          this.error.set(response.mensaje || 'Error al iniciar sesión');
+          this.loading.set(false);
+        }
       },
       error: (err) => {
-        this.error.set(err.message);
+        console.error('Error completo en login:', err);
+        console.error('Status:', err.status);
+        console.error('Error object:', err.error);
+
+        let errorMessage = 'Error al iniciar sesión. Por favor verifica tus credenciales.';
+
+        if (err.status === 0) {
+          errorMessage = 'No se puede conectar con el servidor. Verifica que el backend esté ejecutándose en http://localhost:8080';
+        } else if (err.status === 401) {
+          errorMessage = err.error?.mensaje || 'Credenciales incorrectas. Por favor verifica tu correo y contraseña.';
+        } else if (err.error?.mensaje) {
+          errorMessage = err.error.mensaje;
+        } else if (err.error?.message) {
+          errorMessage = err.error.message;
+        } else if (err.message) {
+          errorMessage = err.message;
+        }
+
+        this.error.set(errorMessage);
         this.loading.set(false);
-        console.error('Error en login:', err);
       }
     });
   }
